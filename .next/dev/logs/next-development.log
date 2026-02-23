@@ -1,0 +1,11 @@
+[00:00:02.022] Server  LOG     ✓ Ready in 1811ms
+[00:00:29.949] Server  ERROR   ⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+[00:00:33.732] Browser ERROR   uncaughtError: Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api

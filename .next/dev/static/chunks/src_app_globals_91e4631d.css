@@ -1,0 +1,96 @@
+/* [project]/src/app/globals.css [app-client] (css) */
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+@layer base {
+  *, :before, :after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    --lightningcss-light: ;
+    --lightningcss-dark: initial;
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    color: #eff6ff;
+    -webkit-font-smoothing: antialiased;
+    background-color: #060e1c;
+    font-family: DM Sans, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0c1a2e;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1c3355;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  .glass {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    background: #0c1a2eb3;
+    border: 1px solid #38bdf81a;
+  }
+
+  .glass-orange {
+    background: #f9731614;
+    border: 1px solid #f973162e;
+  }
+
+  .glass-blue {
+    background: #38bdf812;
+    border: 1px solid #38bdf82e;
+  }
+
+  .text-gradient {
+    background: linear-gradient(130deg, #38bdf8 0%, #f97316 100%);
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .text-gradient-blue {
+    background: linear-gradient(135deg, #38bdf8 0%, #7dd3fc 100%);
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .safe-area-pb {
+    padding-bottom: max(.75rem, env(safe-area-inset-bottom));
+  }
+
+  .font-display {
+    font-family: Barlow Condensed, sans-serif;
+  }
+
+  .font-mono {
+    font-family: DM Mono, monospace;
+  }
+
+  .scanlines:after {
+    content: "";
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, #0000, #0000 2px, #38bdf804 2px 4px);
+    position: absolute;
+    inset: 0;
+  }
+}
+
+/*# sourceMappingURL=src_app_globals_91e4631d.css.map*/

@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = user?.id ?? "guest-" + Date.now();
 
     const body = await request.json();
     const { mode, cameraAngle } = body;
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const { data: session, error } = await supabase
       .from("sessions")
       .insert({
-        user_id:      user.id,
+        user_id:      userId,
         mode:         mode ?? "spike",
         camera_angle: cameraAngle ?? "sideline",
         recorded_at:  new Date().toISOString(),
@@ -40,7 +40,8 @@ export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = user?.id ?? request.cookies.get("guest-session-id")?.value;
+    if (!userId) return NextResponse.json({ error: "Session required" }, { status: 401 });
 
     const body = await request.json();
     const { sessionId, ...fields } = body;
@@ -63,7 +64,7 @@ export async function PATCH(request: NextRequest) {
         calibration_confidence:   fields.calibrationConfidence,
       })
       .eq("id", sessionId)
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     if (sessionError) {
       console.error(sessionError);
