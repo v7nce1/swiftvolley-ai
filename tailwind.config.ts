@@ -5,11 +5,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        vt: {
-          mint:     "#00E5A0",
-          amber:    "#FFD166",
-          coral:    "#FF6B6B",
-          blue:     "#4CC9F0",
+          vt: {
+            // Updated palette: primary blue, warm orange accent, light blue highlights
+            mint:     "#1E3A8A",
+            amber:    "#FFD166",
+            coral:    "#FF8A00",
+            blue:     "#4CC9F0",
           bg:       "#0D0D1A",
           surface:  "#13131F",
           elevated: "#1A1A2E",
