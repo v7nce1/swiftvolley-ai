@@ -180,16 +180,24 @@ export default function RecordPage() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-            <div className="relative aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center">
-              <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
-              <canvas ref={canvasRef} className="hidden" />
+          <div className="bg-gradient-to-br from-vt-mint/6 to-vt-blue/6 border border-vt-outline rounded-2xl p-4">
+              <div className="relative aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center border border-vt-outline/40">
+                <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
+                <canvas ref={canvasRef} className="hidden" />
 
-              {/* Live speed overlay */}
-              <div className="absolute top-3 left-3 bg-black/40 px-3 py-1 rounded-md text-white font-semibold">
-                {liveSpeed !== null ? `${liveSpeed} km/h` : "— km/h"}
+                {/* Small speed badge */}
+                <div className="absolute top-3 left-3 bg-black/40 px-3 py-1 rounded-md text-white font-semibold">
+                  {liveSpeed !== null ? `${liveSpeed} km/h` : "— km/h"}
+                </div>
+
+                {/* Prominent center badge when speed detected */}
+                {liveSpeed !== null && (
+                  <div className="absolute inset-x-1/4 bottom-6 bg-gradient-to-r from-vt-mint to-vt-coral text-white text-center rounded-full px-6 py-3 shadow-2xl">
+                    <div className="text-2xl font-black">{liveSpeed}</div>
+                    <div className="text-xs opacity-80">km/h</div>
+                  </div>
+                )}
               </div>
-            </div>
 
             <div className="mt-4 flex gap-3">
               {!streamActive ? (
@@ -208,7 +216,7 @@ export default function RecordPage() {
             <div className="mt-3 text-sm text-vt-muted">Captured frames: {framesCount}</div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <div className="bg-gradient-to-br from-vt-blue/6 to-vt-coral/4 border border-vt-outline rounded-2xl p-4">
             <h3 className="font-semibold mb-2">How it works</h3>
             <ol className="text-sm text-vt-muted list-decimal pl-5 space-y-2">
               <li>Allow camera access.</li>
