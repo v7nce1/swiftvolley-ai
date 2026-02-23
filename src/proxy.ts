@@ -28,6 +28,13 @@ export async function proxy(request: NextRequest) {
 
   const { pathname, search } = request.nextUrl;
 
+  // Auto-redirect root to /home for quicker entry
+  if (pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/home";
+    return NextResponse.redirect(url);
+  }
+
   // Handle OAuth callback (code from Google/Microsoft)
   if (pathname === "/auth/callback" && search.includes("code=")) {
     try {
@@ -53,9 +60,9 @@ export async function proxy(request: NextRequest) {
 
   // Allow access if user is authenticated OR in guest mode
   if (isProtected && !user && !guestMode) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth";
-    return NextResponse.redirect(url);
+    // Auto-enable guest mode for anonymous visitors so they can enter immediately
+    supabaseResponse.cookies.set("guest_mode", "true", { maxAge: 86400 * 7 }); // 7 days
+    return supabaseResponse;
   }
 
   // Set guest mode cookie if needed (guest must be in localStorage client-side, server mirrors it)
