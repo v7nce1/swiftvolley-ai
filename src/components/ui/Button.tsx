@@ -12,10 +12,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = "secondary", size = "md", loading, className, children, disabled, ...props }, ref) => {
     const base = "inline-flex items-center justify-center font-semibold rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
     const variants = {
-      primary:   "bg-vt-mint text-black hover:bg-vt-mint/90",
-      secondary: "bg-vt-surface border border-vt-outline text-white hover:border-white/20",
-      ghost:     "text-vt-muted hover:text-white hover:bg-white/5",
-      danger:    "bg-vt-coral/10 border border-vt-coral/30 text-vt-coral hover:bg-vt-coral/20",
+      primary:   "bg-vt-blue text-vt-bg hover:bg-vt-blue-bright shadow-blue-glow",
+      secondary: "bg-vt-surface border border-vt-outline text-vt-text hover:border-vt-blue/30",
+      ghost:     "text-vt-muted hover:text-vt-text hover:bg-white/5",
+      danger:    "bg-vt-red/10 border border-vt-red/30 text-vt-red hover:bg-vt-red/20",
     };
     const sizes = {
       sm: "px-4 h-9 text-sm",
@@ -23,13 +23,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: "px-6 h-14 text-base",
     };
     return (
-      <button
-        ref={ref}
-        disabled={disabled || loading}
-        className={cn(base, variants[variant], sizes[size], className)}
-        {...props}
-      >
-        {loading ? <span className="flex items-center gap-2"><Spinner />{children}</span> : children}
+      <button ref={ref} disabled={disabled || loading}
+        className={cn(base, variants[variant], sizes[size], className)} {...props}>
+        {loading
+          ? <span className="flex items-center gap-2"><Spinner />{children}</span>
+          : children}
       </button>
     );
   }
