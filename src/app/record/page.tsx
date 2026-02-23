@@ -231,6 +231,40 @@ export default function RecordPage() {
                 <li>Place the camera to capture the full jump and arm swing.</li>
               </ul>
             </div>
+
+            {/* Calibration UI */}
+            <div className="mt-6 border-t border-vt-outline pt-4">
+              <h4 className="font-semibold mb-2">Quick Calibration</h4>
+              <p className="text-sm text-vt-muted mb-3">Hold a volleyball at a known distance or show it close to the camera, then press Measure.</p>
+              <div className="flex gap-2 items-center">
+                <input defaultValue={0.21} id="ball-diameter" type="number" step="0.01" className="w-28 bg-transparent border border-vt-outline px-3 py-2 rounded-md" />
+                <button onClick={async () => {
+                  // measure ball in current frame
+                  const canvas = canvasRef.current;
+                  const video = videoRef.current;
+                  if (!canvas || !video) { alert('Enable camera first'); return; }
+                  const ctx = canvas.getContext('2d');
+                  if (!ctx) return;
+                  canvas.width = 640; canvas.height = 360;
+                  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                  const img = ctx.getImageData(0,0,canvas.width, canvas.height);
+                  try {
+                    const detector = detectorRef.current ?? new (await import('@/lib/cv/ballDetector')).BallDetector();
+                    const d = detector.detect(img as ImageData);
+                    if (!d) { alert('Ball not detected — try again or move the ball'); return; }
+                    const input = document.getElementById('ball-diameter') as HTMLInputElement;
+                    const meters = parseFloat(input.value) || 0.21;
+                    const pxPerMeter = (d.radius * 2) / meters;
+                    sessionStorage.setItem('calibration_px_per_meter', String(pxPerMeter));
+                    alert(`Calibration saved: ${pxPerMeter.toFixed(1)} px/m`);
+                  } catch (e) {
+                    console.error(e);
+                    alert('Calibration failed');
+                  }
+                }} className="px-4 py-2 rounded-md bg-vt-mint text-black font-semibold">Measure Ball</button>
+              </div>
+              <p className="text-xs text-vt-muted mt-2">Default ball diameter is 0.21 m (volleyball).</p>
+            </div>
           </div>
         </div>
       </div>

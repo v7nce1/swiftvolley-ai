@@ -3,9 +3,13 @@
 import { Navbar } from "@/components/Navbar";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { runPipeline } from "@/lib/cv/pipeline";
 
 export default function ResultsPage() {
   const [frames, setFrames] = useState<string[] | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [progress, setProgress] = useState<{stage:string,percent:number}|null>(null);
+  const [result, setResult] = useState<any | null>(null);
 
   useEffect(() => {
     try {
@@ -18,14 +22,46 @@ export default function ResultsPage() {
 
   const hasFrames = Array.isArray(frames) && frames.length > 0;
 
-  const mockResult = {
-    speedKmh: 78.5,
-    peakSpeedKmh: 82.3,
-    formScore: 85,
-    wristSnapScore: 88,
-    armExtensionScore: 82,
-    contactPointScore: 84,
-  };
+  async function decodeToImageData(urls: string[]) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    const out: ImageData[] = [];
+    for (const u of urls) {
+      const img = await new Promise<HTMLImageElement>((res, rej) => {
+        const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u;
+      });
+      const w = 640, h = 360; canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
+      out.push(ctx.getImageData(0,0,w,h));
+    }
+    return out;
+  }
+
+  async function analyze() {
+    if (!hasFrames || analyzing) return;
+    setAnalyzing(true);
+    setProgress({stage:'Starting', percent:0});
+    const urls = frames!;
+    try {
+      const imgs = await decodeToImageData(urls);
+      const pxOverrideRaw = sessionStorage.getItem('calibration_px_per_meter');
+      const pxOverride = pxOverrideRaw ? parseFloat(pxOverrideRaw) : undefined;
+
+      const res = await runPipeline(imgs, {
+        fps: 30,
+        cameraAngle: 'sideline',
+        onProgress: (s,p) => setProgress({stage:s, percent:p}),
+        pxPerMeterOverride: pxOverride,
+      } as any);
+
+      setResult(res);
+    } catch (e) {
+      console.error(e);
+      alert('Analysis failed');
+    } finally {
+      setAnalyzing(false);
+      setProgress(null);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-vt-bg pb-24">
@@ -46,8 +82,10 @@ export default function ResultsPage() {
                 </div>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-sm text-vt-muted">
-                <p>This is a quick preview of the captured recording. The full analysis runs locally and will be shown here after processing.</p>
+              <div className="flex gap-3">
+                <button disabled={analyzing} onClick={analyze} className="px-4 py-2 rounded-md bg-vt-mint text-black font-semibold">Run Analysis</button>
+                <button onClick={() => { sessionStorage.removeItem('lastRecording'); setFrames(null); }} className="px-4 py-2 rounded-md bg-white/5">Clear</button>
+                {progress && <div className="ml-4 text-sm text-vt-muted">{progress.stage} — {progress.percent}%</div>}
               </div>
             </div>
           ) : (
@@ -56,51 +94,26 @@ export default function ResultsPage() {
             </div>
           )}
 
-          {/* Speed + Scores (mock/fallback) */}
-          <div className="bg-gradient-to-br from-vt-mint/20 to-vt-mint/10 border border-vt-mint/30 rounded-2xl p-8 mb-8">
-            <div className="text-center mb-6">
-              <p className="text-vt-muted mb-2">Peak Speed</p>
-              <div className="text-6xl font-black text-vt-mint mb-2">{mockResult.peakSpeedKmh}</div>
-              <p className="text-2xl font-bold">km/h</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/5 rounded-xl p-4 text-center">
-                <p className="text-xs text-vt-muted mb-2">Current Speed</p>
-                <p className="text-2xl font-bold">{mockResult.speedKmh} km/h</p>
-              </div>
-              <div className="bg-white/5 rounded-xl p-4 text-center">
-                <p className="text-xs text-vt-muted mb-2">Confidence</p>
-                <p className="text-2xl font-bold">92%</p>
-              </div>
-            </div>
-          </div>
-
-          <h2 className="text-2xl font-bold mb-6">Form Analysis</h2>
-          <div className="grid md:grid-cols-2 gap-4 mb-8">
-            {[
-              { label: "Overall Form", value: mockResult.formScore, icon: "🎯" },
-              { label: "Wrist Snap", value: mockResult.wristSnapScore, icon: "🌪️" },
-              { label: "Arm Extension", value: mockResult.armExtensionScore, icon: "💪" },
-              { label: "Contact Point", value: mockResult.contactPointScore, icon: "✋" },
-            ].map((score, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2"><span className="text-2xl">{score.icon}</span><p className="font-semibold text-sm">{score.label}</p></div>
+          {/* Show results if available */}
+          {result && (
+            <div className="bg-gradient-to-br from-vt-mint/10 to-vt-blue/10 border border-vt-outline rounded-2xl p-6 mb-6">
+              <h2 className="text-2xl font-bold mb-3">Analysis Summary</h2>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="p-4 bg-white/5 rounded-xl text-center">
+                  <div className="text-3xl font-black text-vt-mint">{result.peakSpeedKmh}</div>
+                  <div className="text-sm text-vt-muted">Peak km/h</div>
                 </div>
-                <div className="flex items-end gap-2"><span className="text-3xl font-black text-vt-mint">{score.value}</span><span className="text-vt-muted text-sm mb-1">/100</span></div>
-                <div className="w-full bg-white/10 rounded-full h-2 mt-2"><div className="bg-vt-mint rounded-full h-2 transition-all" style={{ width: `${score.value}%` }} /></div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6 text-center">
-            <h3 className="font-bold mb-4">💡 Improvement Tips</h3>
-            <ul className="text-sm text-vt-muted space-y-2 text-left">
-              <li>✓ Your wrist snap is excellent - keep that momentum!</li>
-              <li>✓ Work on arm extension to gain more power</li>
-              <li>✓ Focus contact point consistency for better control</li>
-            </ul>
-          </div>
+                <div className="p-4 bg-white/5 rounded-xl text-center">
+                  <div className="text-3xl font-black">{result.speedKmh}</div>
+                  <div className="text-sm text-vt-muted">Avg km/h</div>
+                </div>
+                <div className="p-4 bg-white/5 rounded-xl text-center">
+                  <div className="text-3xl font-black">{Math.round(result.speedConfidence*100)}%</div>
+                  <div className="text-sm text-vt-muted">Confidence</div>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

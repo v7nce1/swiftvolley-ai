@@ -15,6 +15,7 @@ export interface PipelineOptions {
   fps: number;
   cameraAngle: CameraAngle;
   onProgress: (stage: string, percent: number) => void;
+  pxPerMeterOverride?: number;
 }
 
 export const VOLLEYBALL_DIAMETER_M = 0.21;
@@ -122,7 +123,11 @@ export async function runPipeline(
 
   // ── Step 4: Speed calculation ──────────────────────────────────────────
   onProgress("Calculating speed…", 60);
-  const speedResult = speedCalc.calculate(tracking, pixelsPerMeter, fps, calibrationConfidence);
+  // Allow caller to override pixelsPerMeter (from a one-step calibration)
+  const effectivePxPerMeter = (typeof (arguments[1] as any)?.pxPerMeterOverride === "number")
+    ? (arguments[1] as any).pxPerMeterOverride
+    : pixelsPerMeter;
+  const speedResult = speedCalc.calculate(tracking, effectivePxPerMeter, fps, calibrationConfidence);
 
   // ── Step 5: Pose estimation on contact frame ───────────────────────────
   onProgress("Running pose estimation…", 72);
